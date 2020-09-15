@@ -1,0 +1,19 @@
+#!/bin/bash
+cpuuse=$(cat /proc/loadavg | awk '{print $1}') | bc
+if [ $cpuuse -g 60 ];
+then
+        echo "CPU is greater than normal value"
+else
+        echo "CPU load is idle"
+fi
+
+# To check number of users logged in
+
+users=$(top -n 1 -b | grep "users" | awk '{print $8}')
+if [ $users -lt 1]:
+then
+        echo "no users are logged in this instance $hostname"
+else
+        echo "more than 1 user logged in this instance $hostname"
+fi
+
