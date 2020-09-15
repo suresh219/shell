@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Command to get instance ids with tags
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --filters 'Name=tag-value,Values=development' --output text >instance-ids-tag.txt
+
+
+# The file with the instance IDs
+filename=instance-ids-tag.txt
+
+# To check the instance ip addresses
+rm -f public_ips
+while read line;
+do
+        echo "Getting instance public ip address"
+        aws ec2 describe-instances --instance-ids $line | grep PublicIpAddress | awk '{print $2}' | sed 's/"//g; s/,//g' >> public_ips
+        echo "$line"
+done<$filename
+
+# To check cpu last 30 minutes CPU idle state & number of users
+while read line;
+do
+        ssh -i "september20.pem" -o StrictHostKeyChecking=no ubuntu@$line
+        sar -q
+done
+
+# Iterate through the lines
+while read p;
+do
+  echo "Stopping $p"
+  aws ec2 start-instances --instance-ids $p
+done <$filname
